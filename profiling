@@ -1,0 +1,68 @@
+-- Specify the table name and column to profile
+DECLARE @TableName NVARCHAR(128) = 'YourTableName';
+DECLARE @ColumnName NVARCHAR(128) = 'YourColumnName';
+
+-- Create a temporary table to store profiling results
+CREATE TABLE #ProfileResults (
+    ColumnName NVARCHAR(128),
+    DataType NVARCHAR(128),
+    IsNullable BIT,
+    IsUnique BIT,
+    MaxValue NVARCHAR(256),
+    MinValue NVARCHAR(256),
+    RowCount INT
+);
+
+-- Generate profiling results for the specified column in the table
+DECLARE @DataType NVARCHAR(128);
+DECLARE @IsNullable BIT;
+DECLARE @IsUnique BIT;
+DECLARE @MaxValue NVARCHAR(256);
+DECLARE @MinValue NVARCHAR(256);
+DECLARE @RowCount INT;
+DECLARE @SQL NVARCHAR(MAX);
+
+SELECT @DataType = DATA_TYPE, @IsNullable = IS_NULLABLE, @IsUnique = IS_UNIQUE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = @TableName AND COLUMN_NAME = @ColumnName;
+
+SET @SQL = 'SELECT
+                ''' + @ColumnName + ''' AS ColumnName,
+                ''' + @DataType + ''' AS DataType,
+                ' + CAST(@IsNullable AS NVARCHAR(1)) + ' AS IsNullable,
+                ' + CAST(@IsUnique AS NVARCHAR(1)) + ' AS IsUnique,
+                MAX(' + QUOTENAME(@ColumnName) + ') AS MaxValue,
+                MIN(' + QUOTENAME(@ColumnName) + ') AS MinValue,
+                COUNT(*) AS RowCount
+            FROM ' + QUOTENAME(@TableName);
+
+EXEC sp_executesql @SQL, N'@DataType NVARCHAR(128), @IsNullable BIT, @IsUnique BIT, @MaxValue NVARCHAR(256), @MinValue NVARCHAR(256), @RowCount INT OUTPUT', @DataType OUTPUT, @IsNullable OUTPUT, @IsUnique OUTPUT, @MaxValue OUTPUT, @MinValue OUTPUT, @RowCount OUTPUT;
+
+INSERT INTO #ProfileResults (ColumnName, DataType, IsNullable, IsUnique, MaxValue, MinValue, RowCount)
+VALUES (@ColumnName, @DataType, @IsNullable, @IsUnique, @MaxValue, @MinValue, @RowCount);
+
+-- Fetch random samples for the specified column and row
+DECLARE @RandomRow INT = ABS(CHECKSUM(NEWID())) % @RowCount + 1;
+DECLARE @SampleSQL NVARCHAR(MAX) = '
+    SELECT TOP 5
+        ''' + @ColumnName + ''' AS ColumnName,
+        ' + QUOTENAME(@ColumnName) + ' AS SampleData
+    FROM
+        (
+		
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS RowNum,
+                ' + QUOTENAME(@ColumnName) + ' AS ' + QUOTENAME(@ColumnName) + '
+            FROM ' + QUOTENAME(@TableName) + '
+            WHERE ' + QUOTENAME(@ColumnName) + ' IS NOT NULL
+        ) AS SubQuery
+    WHERE
+        RowNum = ' + CAST(@RandomRow AS NVARCHAR(10));
+
+EXEC sp_executesql @SampleSQL;
+
+-- Retrieve the profiling results
+SELECT * FROM #ProfileResults;
+
+-- Clean up the temporary table
+DROP TABLE #ProfileResults;
