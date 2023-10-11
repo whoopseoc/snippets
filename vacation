@@ -1,81 +1,10 @@
-SELECT 'Yes' AS AddressesAreSame,
-       CASE
-           WHEN
-               t1.address_column1 = t2.address_column1
-               AND t1.address_column2 = t2.address_column2
-               AND t1.address_column3 = t2.address_column3
-           THEN 'Yes' -- Primary address is also mailing
-           ELSE 'No' -- Primary address is not mailing
-       END AS IsMailingAddress,
-       CASE
-           WHEN
-               t1.address_column1 = t2.address_column1
-               AND t1.address_column2 = t2.address_column2
-               AND t1.address_column3 = t2.address_column3
-           THEN 'Yes' -- Primary address is also vacation
-           ELSE 'No' -- Primary address is not vacation
-       END AS IsVacationAddress,
-       t1.address_column1, t1.address_column2, t1.address_column3
-FROM
-    table1 AS t1
-CROSS JOIN
-    table2 AS t2
+SELECT AddressID, Address, 'Primary' AS AddressType, 1 AS IsMailing
+FROM PrimaryAddresses
 
-UNION ALL
+UNION
 
-SELECT 'No' AS AddressesAreSame,
-       'No' AS IsMailingAddress,
-       'No' AS IsVacationAddress,
-       t1.address_column1, t1.address_column2, t1.address_column3
-FROM
-    table1 AS t1
-CROSS JOIN
-    table2 AS t2
-WHERE
-    NOT (
-        t1.address_column1 = t2.address_column1
-        AND t1.address_column2 = t2.address_column2
-        AND t1.address_column3 = t2.address_column3
-    )
-
-UNION ALL
-
-SELECT 'Yes' AS AddressesAreSame,
-       CASE
-           WHEN
-               t1.address_column1 = t3.address_column1
-               AND t1.address_column2 = t3.address_column2
-               AND t1.address_column3 = t3.address_column3
-           THEN 'Yes' -- Primary address is also mailing
-           ELSE 'No' -- Primary address is not mailing
-       END AS IsMailingAddress,
-       CASE
-           WHEN
-               t1.address_column1 = t3.address_column1
-               AND t1.address_column2 = t3.address_column2
-               AND t1.address_column3 = t3.address_column3
-           THEN 'Yes' -- Primary address is also vacation
-           ELSE 'No' -- Primary address is not vacation
-       END AS IsVacationAddress,
-       t1.address_column1, t1.address_column2, t1.address_column3
-FROM
-    table1 AS t1
-CROSS JOIN
-    table3 AS t3
-
-UNION ALL
-
-SELECT 'No' AS AddressesAreSame,
-       'No' AS IsMailingAddress,
-       'No' AS IsVacationAddress,
-       t1.address_column1, t1.address_column2, t1.address_column3
-FROM
-    table1 AS t1
-CROSS JOIN
-    table3 AS t3
-WHERE
-    NOT (
-        t1.address_column1 = t3.address_column1
-        AND t1.address_column2 = t3.address_column2
-        AND t1.address_column3 = t3.address_column3
-    );
+SELECT M.AddressID, M.Address, 'Mailing' AS AddressType, 
+       CASE WHEN P.Address IS NOT NULL THEN 1 ELSE 0 END AS IsMailing
+FROM MailingAddresses M
+LEFT JOIN PrimaryAddresses P ON M.AddressID = P.AddressID
+WHERE M.Address <> ISNULL(P.Address, '')
