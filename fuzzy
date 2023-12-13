@@ -1,0 +1,43 @@
+import pandas as pd
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+import pyodbc  # for SQL Server connection
+
+# Define your SQL Server connection parameters
+server = 'your_server'
+database = 'your_database'
+username = 'your_username'
+password = 'your_password'
+
+# Define SQL queries to fetch data from tables
+query_source = 'SELECT column_name FROM source_table'
+query_target = 'SELECT column_name FROM target_table'
+
+# Create a function to establish a SQL Server connection and fetch data
+def fetch_data(sql_query):
+    conn = pyodbc.connect(f"Driver={{SQL Server}};Server={server};Database={database};UID={username};PWD={password}")
+    data = pd.read_sql_query(sql_query, conn)
+    conn.close()
+    return data
+
+# Fetch data from SQL Server and load it into DataFrames
+source_data = fetch_data(query_source)
+target_data = fetch_data(query_target)
+
+# Function to find the best match for a source string in the target DataFrame
+def find_best_match(source_str, target_df):
+    best_match, similarity = process.extractOne(source_str, target_df['column_name'])
+    return best_match, similarity
+
+# Iterate through the source DataFrame and find the best match in the target DataFrame
+matches = []
+for index, row in source_data.iterrows():
+    source_str = row['column_name']
+    best_match, similarity = find_best_match(source_str, target_data)
+    matches.append((source_str, best_match, similarity))
+
+# Create a DataFrame to store the results
+results_df = pd.DataFrame(matches, columns=['Source', 'BestMatch', 'Similarity'])
+
+# Print the results or save them to a file, as needed
+print(results_df)
