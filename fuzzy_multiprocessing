@@ -1,0 +1,96 @@
+import pandas as pd
+from fuzzywuzzy import fuzz
+from tabulate import tabulate
+import pyodbc  # for SQL Server connection
+import time
+import multiprocessing
+
+# Define your SQL Server connection parameters
+server = 'your_server'
+database = 'your_database'
+username = 'your_username'
+password = 'your_password'
+
+def run_fuzzy_matching(starting_letter):
+    # Define SQL queries to fetch data from tables with the starting letter
+    query_source = f'''
+    SELECT column_name
+    FROM source_table
+    WHERE column_name LIKE '{starting_letter}%'
+    ORDER BY column_name
+    '''
+    query_target = f'''
+    SELECT column_name
+    FROM target_table
+    WHERE column_name LIKE '{starting_letter}%'
+    ORDER BY column_name
+    '''
+
+    # Start the timer
+    start_time = time.time()
+
+    # Create a function to establish a SQL Server connection and fetch data
+    def fetch_data(sql_query):
+        conn = pyodbc.connect(f"Driver={{SQL Server}};Server={server};Database={database};UID={username};PWD={password}")
+        data = pd.read_sql_query(sql_query, conn)
+        conn.close()
+        return data
+
+    # Function to find the best match for a source string in the target DataFrame
+    def find_best_match(source_str, target_df):
+        best_match, similarity = None, None
+        highest_similarity = -1  # Initialize with a low value
+
+        for index, row in target_df.iterrows():
+            target_str = row['column_name']
+            current_similarity = fuzz.ratio(source_str, target_str)
+
+            if current_similarity > highest_similarity:
+                highest_similarity = current_similarity
+                best_match = target_str
+                similarity = current_similarity
+
+        return best_match, similarity
+
+    # Fetch data from SQL Server and load it into DataFrames
+    source_data = fetch_data(query_source)
+    target_data = fetch_data(query_target)
+
+    # Define the function to process a chunk of source strings
+    def process_chunk(chunk):
+        matches = []
+        for index, row in chunk.iterrows():
+            source_str = row['column_name']
+            best_match, similarity = find_best_match(source_str, target_data)
+
+            # Capitalize both sides
+            source_str = source_str.capitalize()
+            best_match = best_match.capitalize()
+
+            matches.append((source_str, best_match, similarity))
+        return matches
+
+    # Split the source data into chunks for parallel processing
+    chunk_size = len(source_data) // multiprocessing.cpu_count()
+    source_chunks = [source_data[i:i + chunk_size] for i in range(0, len(source_data), chunk_size)]
+
+    # Create a multiprocessing pool with 4 processes
+    pool = multiprocessing.Pool(processes=4)
+    results = pool.map(process_chunk, source_chunks)
+    pool.close()
+    pool.join()
+
+    # Flatten the results from multiple processes
+    matches = [match for sublist in results for match in sublist]
+
+    # Create a DataFrame to store the results
+    results_df = pd.DataFrame(matches, columns=['Source', 'BestMatch', 'Similarity'])
+
+    # ... (rest of the code remains the same)
+
+    # Print the formatted results and elapsed time
+    print(tabulated_results)
+    print(f"Elapsed Time: {elapsed_time} seconds")
+
+# Call the function with the letter 'A' as an argument to run the fuzzy matching
+run_fuzzy_matching('A')
