@@ -1,10 +1,39 @@
-SELECT AddressID, Address, 'Primary' AS AddressType, 1 AS IsMailing
-FROM PrimaryAddresses
+Subject: Discussion Request: Source Control Implementation for Pinnacle Care Project
 
-UNION
+Hello Everyone,
 
-SELECT M.AddressID, M.Address, 'Mailing' AS AddressType, 
-       CASE WHEN P.Address IS NOT NULL THEN 1 ELSE 0 END AS IsMailing
-FROM MailingAddresses M
-LEFT JOIN PrimaryAddresses P ON M.AddressID = P.AddressID
-WHERE M.Address <> ISNULL(P.Address, '')
+I hope this message finds you well.
+
+I would like to initiate a dialogue concerning the implementation of source control for the Pinnacle Care project. Although there have been previous conversations which have not favored the use of Bitbucket (the Sunlife-standard via Atlassian), I believe it is crucial to explore this matter further.
+
+The purpose of establishing source control is multifaceted: it will serve as a backup and enhance the development process, particularly as we are now in the production phase. The areas I propose we place under source control are as follows:
+
+Database source control
+Views
+Functions
+Descriptions
+Procedures
+Git usage
+Data tables and reference data, including insert statements and versions
+Dynamic metadata: Currently, this data resides in a QA reference table and is directly applied to production. I would like to request that this is backed up independently. Additionally, I propose storing it in source control as a series of insert statements, creating a double redundancy for enhanced security.
+To facilitate our source control needs, I suggest considering AWS CodeCommit as a potential solution:
+
+Amazon AWS CodeCommit
+
+I believe AWS CodeCommit could offer us the robustness and reliability we are seeking.
+
+Could we schedule a meeting to discuss this proposal in detail? Your input and expertise would be highly valued as we consider this essential component of our project infrastructure.
+
+Thank you for your attention to this matter, and I look forward to our collaborative efforts to strengthen our development workflow.
+
+Best regards,
+
+[Your Name]
+[Your Position]
+[Your Contact Information]
+
+
+
+
+
+
