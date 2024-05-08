@@ -1,0 +1,14 @@
+SELECT 
+  MAX(CASE WHEN pd.name = dn.name1 THEN pd.date_col ELSE NULL END) AS MaxDate1,
+  MAX(CASE WHEN pd.name = dn.name2 THEN pd.date_col ELSE NULL END) AS MaxDate2,
+  MAX(CASE WHEN pd.name = dn.name3 THEN pd.date_col ELSE NULL END) AS MaxDate3
+FROM 
+  dashboard_names dn
+JOIN 
+  people_dates pd
+ON 
+  pd.name IN (dn.name1, dn.name2, dn.name3)
+WHERE 
+  dn.dashboard_name = :dashboardName
+GROUP BY 
+  dn.dashboard_name;
