@@ -1,0 +1,20 @@
+SELECT
+    Id,
+    DurableId,
+    EntityParticleId,
+    Value,
+    Label,
+    IsDefaultValue,
+    ValidFor,
+    ControllingFieldDefinitionId,
+    EntityDefinition.QualifiedApiName,
+    ControllingFieldDefinition.QualifiedApiName
+FROM
+    PicklistValueInfo
+WHERE
+    EntityParticleId IN (
+        SELECT Id
+        FROM EntityParticle
+        WHERE EntityDefinition.QualifiedApiName = 'Account'
+        AND QualifiedApiName = 'Industry'
+    )
