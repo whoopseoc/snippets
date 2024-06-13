@@ -8,16 +8,32 @@ directory_path = "C:/path/to/your/folder"
 output_csv_path = "C:/path/to/output/filenames.csv"
 
 # Open the CSV file for writing
-with open(output_csv_path, mode='w', newline='') as file:
+with open(output_csv_path, mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     # Write the header to the CSV file
-    writer.writerow(['FileName'])
+    writer.writerow(['FolderId', 'Name', 'UniqueName', 'ContentType', 'Type', 'IsPublic', 'Body', 'Description', 'IsInternalUserOnly'])
 
     # Iterate through each file in the directory specified
     for filename in os.listdir(directory_path):
         # Check if it's a file and not a directory
-        if os.path.isfile(os.path.join(directory_path, filename)):
-            # Write the filename to the CSV file
-            writer.writerow([filename])
+        full_path = os.path.join(directory_path, filename)
+        if os.path.isfile(full_path):
+            # Processing the filename to create UniqueName
+            file_base_name, file_extension = os.path.splitext(filename)
+            parts = file_base_name.split('_')
+            unique_name = 'P_' + (''.join(parts[1:]) if len(parts) > 1 else file_base_name) + file_extension
 
-print(f"File names have been written to: {output_csv_path}")
+            # Writing the row to the CSV file
+            writer.writerow([
+                'XXX111XXX',  # FolderId
+                'Provider',  # Name
+                unique_name,  # UniqueName
+                file_extension[1:] if file_extension else 'unknown',  # ContentType (without the dot)
+                file_extension[1:] if file_extension else 'unknown',  # Type (without the dot)
+                'TRUE',  # IsPublic
+                full_path,  # Body
+                'provider',  # Description
+                'FALSE'  # IsInternalUserOnly
+            ])
+
+print(f"File names and details have been written to: {output_csv_path}")
