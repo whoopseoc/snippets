@@ -1,0 +1,23 @@
+import os
+import csv
+
+# Specify the directory to scan for files
+directory_path = "C:/path/to/your/folder"
+
+# Specify the path to the CSV file where the filenames will be saved
+output_csv_path = "C:/path/to/output/filenames.csv"
+
+# Open the CSV file for writing
+with open(output_csv_path, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header to the CSV file
+    writer.writerow(['FileName'])
+
+    # Iterate through each file in the directory specified
+    for filename in os.listdir(directory_path):
+        # Check if it's a file and not a directory
+        if os.path.isfile(os.path.join(directory_path, filename)):
+            # Write the filename to the CSV file
+            writer.writerow([filename])
+
+print(f"File names have been written to: {output_csv_path}")
