@@ -18,10 +18,18 @@ with open(output_csv_path, mode='w', newline='', encoding='utf-8') as file:
         # Check if it's a file and not a directory
         full_path = os.path.join(directory_path, filename)
         if os.path.isfile(full_path):
-            # Processing the filename to create UniqueName
+            # Extract the file extension
             file_base_name, file_extension = os.path.splitext(filename)
-            parts = file_base_name.split('_')
-            unique_name = 'P_' + (''.join(parts[1:]) if len(parts) > 1 else file_base_name) + file_extension
+            
+            # Process the filename to create UniqueName
+            if '_' in file_base_name:
+                # Split the base name at the first underscore and use only the first part
+                part_before_first_underscore = file_base_name.split('_', 1)[0]
+            else:
+                # If there's no underscore, use the whole base name
+                part_before_first_underscore = file_base_name
+            
+            unique_name = f'P_{part_before_first_underscore}{file_extension}'
 
             # Writing the row to the CSV file
             writer.writerow([
