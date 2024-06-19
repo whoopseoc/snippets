@@ -1,0 +1,68 @@
+To view the entire list of OBIEE (Oracle Business Intelligence Enterprise Edition) permissions at the dashboard level, follow these steps:
+
+### Using OBIEE Administration Tool
+
+1. **Open the OBIEE Administration Tool**:
+   - Launch the OBIEE Administration Tool.
+
+2. **Connect to the Repository**:
+   - Open the RPD (Repository) file in online mode by connecting to your OBIEE server.
+
+3. **Navigate to the Dashboard**:
+   - In the Administration Tool, go to the Presentation layer.
+
+4. **View Permissions**:
+   - Right-click on the Dashboard or folder you are interested in.
+   - Select "Properties" and then go to the "Permissions" tab.
+   - Here, you will see the list of users and groups along with their permission levels.
+
+### Using OBIEE Web Interface
+
+1. **Log in to OBIEE**:
+   - Go to the OBIEE web interface (e.g., http://your-obiee-server/analytics).
+
+2. **Navigate to the Dashboard**:
+   - Go to the "Catalog" tab to browse the available dashboards.
+   - Locate the dashboard you want to check permissions for.
+
+3. **Open Permissions**:
+   - Click on the dashboard to select it.
+   - In the toolbar, click on "More" and then select "Permissions".
+   - A window will pop up showing the permissions for users and groups.
+
+### Using OBIEE Security Manager
+
+1. **Log in to OBIEE**:
+   - Open the OBIEE web interface and log in with administrator credentials.
+
+2. **Open the Security Manager**:
+   - Navigate to "Administration" and then select "Manage Privileges".
+
+3. **Review Dashboard Privileges**:
+   - In the "Manage Privileges" section, look for dashboard-related privileges.
+   - You can review who has access to various dashboard functions and features.
+
+### Using SQL (for Advanced Users)
+
+1. **Connect to the OBIEE Metadata Database**:
+   - Connect to the database that stores your OBIEE metadata using a SQL tool like SQL Developer.
+
+2. **Run SQL Queries**:
+   - Execute SQL queries to extract permission details. For example:
+     ```sql
+     SELECT 
+         PA.NAME AS USER_GROUP,
+         PA.PATH AS DASHBOARD_PATH,
+         PPA.PRIVILEGE AS PRIVILEGE
+     FROM 
+         S_NQ_ACCT PA
+     JOIN 
+         S_NQ_PRIV PPA ON PA.ID = PPA.PA_ID
+     WHERE 
+         PPA.OBJECT_TYPE = 'DASHBOARD'
+     ORDER BY 
+         PA.NAME;
+     ```
+   - This query will provide a list of user groups, dashboard paths, and their privileges.
+
+These methods will help you view and manage the entire list of permissions at the dashboard level in OBIEE.
