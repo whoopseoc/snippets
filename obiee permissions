@@ -1,10 +1,12 @@
 SELECT
     name,
     CASE
+        WHEN name IS NULL THEN 'no Value'
         WHEN CHARINDEX(' ', name) = 0 THEN name
         ELSE LEFT(name, CHARINDEX(' ', name) - 1)
     END AS firstname,
     CASE
+        WHEN name IS NULL THEN 'no Value'
         WHEN CHARINDEX(' ', name) = 0 THEN 'no Value'
         ELSE SUBSTRING(name, CHARINDEX(' ', name) + 1, LEN(name) - CHARINDEX(' ', name))
     END AS lastname
