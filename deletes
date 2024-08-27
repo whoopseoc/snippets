@@ -1,0 +1,53 @@
+Document: Data Migration Strategy Between System A and System B
+Introduction
+In this document, we’ll explain the process of migrating data between two different systems, System A and System B. Each system handles data deletions differently, and it’s important to ensure that data is accurately and consistently transferred between them.
+
+System A: Uses hard deletes and column cell data deletes.
+System B: Uses soft deletes.
+One critical challenge in this migration is that we cannot identify the data that has been deleted in System A. This limitation means that we have no way to inform System B about these deletes. Below, we outline how we will handle these differences.
+
+Understanding System A and System B
+System A - Hard Deletes and Column Cell Data Deletes
+
+Hard Deletes: When data is deleted, it is permanently removed from the database, and there is no trace left of the deleted data. Importantly, there is no record or marker to indicate what has been deleted.
+Column Cell Data Deletes: Specific pieces of data in a row can be deleted, leaving the row itself visible but with some cells empty. This means that some information in the row is gone, but the row remains in views, just with missing details.
+System B - Soft Deletes
+
+Soft Deletes: Instead of removing data entirely, System B marks data as "deleted" without actually removing it. This allows the data to be hidden from normal views but still exist in the database, making it possible to restore the data if needed.
+Migration from System A to System B
+When moving data from System A to System B, we need to account for the differences in how deletions are handled, with a special focus on the fact that System A’s hard deletes cannot be detected.
+
+Handling Hard Deletes from System A:
+
+Challenge: Since System A permanently deletes data and leaves no trace or record of these deletions, we cannot identify which rows were deleted. As a result, we have no way to replicate these deletions in System B.
+Impact: This means that during migration, any rows that were hard deleted in System A will appear as if they still exist in System B. System B will treat these rows as active, even though they no longer exist in System A.
+Solution: Users need to be aware that System B might show data that was actually deleted in System A. If it’s critical to maintain consistency, additional audits or manual verification may be required to identify and remove these rows in System B post-migration.
+Handling Column Cell Data Deletes from System A:
+
+Challenge: System A may have rows with some cells emptied of data, while the row itself is still present. When these rows are migrated to System B, they need to be accurately represented.
+Solution: In System B, these rows will appear with the same missing information in the corresponding cells. System B will show these rows as incomplete but still present, just as they were in System A.
+Migration from System B to System A
+When migrating data from System B back to System A, we need to convert soft deletes into actions that System A can handle, but also understand the limitations.
+
+Handling Soft Deletes from System B:
+
+Challenge: System B has rows marked as deleted but not actually removed. Since System A does not support soft deletes, we need to decide how to handle these.
+Solution: During the reverse migration, any rows in System B that are marked as "deleted" will be hard deleted in System A. This means that the data will be permanently removed, and those rows will no longer exist in System A.
+Handling Visible Rows with Missing Data from System B:
+
+Challenge: In System B, some rows might still exist but with certain cells empty. System A can handle this, but it’s important to ensure that the migration correctly represents these rows.
+Solution: These rows will be migrated as they are, with the same empty cells appearing in System A. The result will be rows in System A that look just like they did in System B, with some cells containing data and others empty.
+Key Considerations
+Undetected Deletes in System A:
+
+It is crucial for users to understand that during migration from System A to System B, we cannot account for or replicate deletes that occurred in System A. This might result in System B containing records that should have been deleted.
+Manual intervention or additional verification processes may be necessary to identify and address these discrepancies in System B.
+Potential Data Inconsistencies:
+
+Because of the inability to detect deletes in System A, there is a risk of data inconsistency between the two systems. It is important to keep this in mind when working with the migrated data in System B.
+Conclusion
+This migration process ensures that data is transferred between System A and System B as accurately as possible, given the limitations:
+
+From System A to System B: Hard deletes in System A cannot be identified, so all remaining data will be migrated to System B. Users should be aware that System B may contain records that were actually deleted in System A.
+From System B to System A: Soft deletes in System B will be converted to hard deletes in System A. Any visible rows with missing data will appear similarly in System A.
+By following this strategy and acknowledging the limitations, we can maintain as much data integrity as possible while managing expectations around potential discrepancies.
