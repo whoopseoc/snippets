@@ -1,18 +1,27 @@
+WITH RankedPhones AS (
+    SELECT 
+        PersonID,
+        Phone,
+        Hierarchy,
+        ROW_NUMBER() OVER (
+            PARTITION BY PersonID 
+            ORDER BY CASE WHEN Phone = '0000000000' THEN 1 ELSE 0 END, Hierarchy
+        ) AS Rank
+    FROM your_table
+)
 SELECT 
+    PersonID,
     Phone,
     Hierarchy,
-    IIF(
-        Phone <> '0000000000' AND Hierarchy = (
-            SELECT MIN(Hierarchy) 
-            FROM your_table 
-            WHERE Phone <> '0000000000'
-        ), 
-        'True',
-        IIF(
-            (SELECT COUNT(*) FROM your_table WHERE Phone <> '0000000000') = 0 
-            AND Hierarchy = (SELECT MIN(Hierarchy) FROM your_table),
-            'True',
-            'False'
-        )
-    ) AS IsPrimaryPhone
-FROM your_table;
+    CASE 
+        WHEN Phone <> '0000000000' AND Rank = 1 THEN 'True'
+        WHEN Phone = '0000000000' AND NOT EXISTS (
+            SELECT 1 
+            FROM your_table AS t2 
+            WHERE t2.PersonID = RankedPhones.PersonID 
+            AND t2.Phone <> '0000000000'
+        ) AND Rank = 1 THEN 'True'
+        ELSE 'False'
+    END AS IsPrimaryPhone
+FROM RankedPhones
+ORDER BY PersonID, Hierarchy;
