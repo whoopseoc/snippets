@@ -1,0 +1,18 @@
+SELECT 
+    Phone,
+    Hierarchy,
+    IIF(
+        Phone <> '0000000000' AND Hierarchy = (
+            SELECT MIN(Hierarchy) 
+            FROM your_table 
+            WHERE Phone <> '0000000000'
+        ), 
+        'True',
+        IIF(
+            (SELECT COUNT(*) FROM your_table WHERE Phone <> '0000000000') = 0 
+            AND Hierarchy = (SELECT MIN(Hierarchy) FROM your_table),
+            'True',
+            'False'
+        )
+    ) AS IsPrimaryPhone
+FROM your_table;
