@@ -3,6 +3,7 @@ WITH RankedPhones AS (
         PersonID,
         Phone,
         Hierarchy,
+        -- Rank rows by non-0000000000 first, then by hierarchy
         ROW_NUMBER() OVER (
             PARTITION BY PersonID 
             ORDER BY CASE WHEN Phone = '0000000000' THEN 1 ELSE 0 END, Hierarchy
@@ -13,14 +14,9 @@ SELECT
     PersonID,
     Phone,
     Hierarchy,
+    -- Assign True if this row is Rank 1 (primary), else False
     CASE 
-        WHEN Phone <> '0000000000' AND Rank = 1 THEN 'True'
-        WHEN Phone = '0000000000' AND NOT EXISTS (
-            SELECT 1 
-            FROM your_table AS t2 
-            WHERE t2.PersonID = RankedPhones.PersonID 
-            AND t2.Phone <> '0000000000'
-        ) AND Rank = 1 THEN 'True'
+        WHEN Rank = 1 THEN 'True'
         ELSE 'False'
     END AS IsPrimaryPhone
 FROM RankedPhones
